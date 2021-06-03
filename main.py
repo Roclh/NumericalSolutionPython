@@ -146,16 +146,19 @@ class MathCore:
         self.halves_table = []
         self.steps = 1
         self.x = (self.x0 + self.x1) / 2
-        while abs(self.x0 - self.x1) >= self.accuracy:
+        self.halves_table.append(
+            [self.steps, self.x0, self.x1, self.x, self.function(self.x0), self.function(self.x1),
+             self.function(self.x), abs(self.x1 - self.x0)])
+        while not (abs(self.x0 - self.x1) >= self.accuracy and self.accuracy >= abs(self.function(self.x))):
             if self.function(self.x0) * self.function(self.x) <= 0:
                 self.x1 = self.x
             else:
                 self.x0 = self.x
-            self.halves_table.append(
-                [self.steps, self.x0, self.x1, self.x, self.function(self.x0), self.function(self.x1),
-                 self.function(self.result)])
             self.x = (self.x0 + self.x1) / 2
             self.steps += 1
+            self.halves_table.append(
+                [self.steps, self.x0, self.x1, self.x, self.function(self.x0), self.function(self.x1),
+                 self.function(self.x), abs(self.x1 - self.x0)])
         self.result = self.x
 
     def calculate_method_secant(self):
@@ -221,7 +224,7 @@ class MathCore:
             elif self.type_equations == 2:
                 return 2 * math.pow(math.e, 2 * x)
             elif self.type_equations == 3:
-                return -8.1*x*x-2.96*x+19.23
+                return -8.1 * x * x - 2.96 * x + 19.23
         except ZeroDivisionError:
             return self.derivative_of_function(x + 1e-8)
         except OverflowError:
@@ -234,7 +237,8 @@ class MathCore:
             elif self.type_equations == 2:
                 return self.param_lambda * math.pow(math.e, 2 * x) - self.param_lambda * 2 + x
             elif self.type_equations == 3:
-                return -self.param_lambda * 2.7 * x * x * x - self.param_lambda * 1.48 * math.pow(x, 2) + self.param_lambda * 19.23 * x - self.param_lambda * 6.35 + x
+                return -self.param_lambda * 2.7 * x * x * x - self.param_lambda * 1.48 * math.pow(x,
+                                                                                                  2) + self.param_lambda * 19.23 * x - self.param_lambda * 6.35 + x
         except ZeroDivisionError:
             return self.param_function(x + 1e-8)
         except OverflowError:
@@ -244,21 +248,22 @@ class MathCore:
         if type_of_table == 1:
             print('Метод половинного деления:')
             print(tabulate(self.halves_table, headers=["№", "a", "b", "x", "f(a)", "f(b)", "f(x)", "|a-b|"],
-                           tablefmt="fancy_grid", floatfmt="2.5f"))
+                           tablefmt="fancy_grid", floatfmt="5.3f"))
         elif type_of_table == 2:
             print('Метод сечений:')
             print(tabulate(self.secant_table, headers=["№", "x(i-1)", "x(i)", "x(i+1)", "f(x(i+1))", "|x(i+1)-x(i)|"],
-                           tablefmt="fancy_grid", floatfmt="2.5f"))
+                           tablefmt="fancy_grid", floatfmt="5.3f"))
         elif type_of_table == 3:
             print('Метод простых итераций:')
             print(tabulate(self.iter_table, headers=["№", "x(i)", "x(i+1)", "fi(i+1)", "f(x(i+1))", "|x(i+1)-x(i)|"],
-                           tablefmt="fancy_grid", floatfmt="2.5f"))
+                           tablefmt="fancy_grid", floatfmt="5.3f"))
 
 
 def print_result(math_logic):
     if math_logic.solvable == 1:
         if math_logic.status == 0:
             print("\nКорень уровнения: " + str(math_logic.result) + "\n" +
+                  "Значение функции в корне: " + str(math_logic.function(math_logic.x))+"\n"+
                   "Количество итераций: " + str(math_logic.steps) + "\n" +
                   "Погрешность вычислений: " + str(math_logic.accuracy) + "\n")
             draw_graph(math_logic)
@@ -292,7 +297,8 @@ def draw_graph(math_logic):
         x = np.linspace(minimum, maximum, 100)
         equations = {1: ["f(x) = x^3 - x + 4", [(math.pow(i, 3) - x + 4) for i in x]],
                      2: ["f(x) = e^2x - 2", [(math.pow(math.e, 2 * i) - 2) for i in x]],
-                     3: ["f(x) = -2.7x^3 - 1.48x^2 + 19.23x + 6.35", [(-2.7*i*i*i - 1.48*i*i+19.23*i+6.35) for i in x]]}
+                     3: ["f(x) = -2.7x^3 - 1.48x^2 + 19.23x + 6.35",
+                         [(-2.7 * i * i * i - 1.48 * i * i + 19.23 * i + 6.35) for i in x]]}
         plt.title("Функция: " + equations[math_logic.type_equations][0])
         plt.plot(x, equations[math_logic.type_equations][1], color="b", linewidth=2)
         plt.plot(x, 0 * x, color="black", linewidth=1)
